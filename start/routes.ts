@@ -20,29 +20,36 @@
 
 import Route from '@ioc:Adonis/Core/Route'
 import { Limiter } from '@adonisjs/limiter/build/services'
+import { schema } from '@ioc:Adonis/Core/Validator'
 
 Route.get('/test/using-middleware', async () => {
   return { hello: 'world' }
 }).middleware('throttle:global')
 
-Route.get('/test/using-limiter-manager', async ({ request, response }) => {
+Route.post('/test/using-limiter-manager', async ({ request, response }) => {
   const throttleKey = request.ip()
 
   const limiter = Limiter.use({
     requests: 1,
-    duration: '10 second',
-    blockDuration: '1 min',
+    duration: '20 second',
+    blockDuration: '2 min',
   })
 
   if (await limiter.isBlocked(throttleKey)) {
     return response.tooManyRequests('Request attempts exhausted. Please try after some time')
   }
 
-  try {
-    const username = request.input('username')
-    const password = request.input('password')
+  const loginSchema = schema.create({
+    username: schema.string({ trim: true }),
+    password: schema.string({ trim: true }),
+  })
 
-    if (username !== 'username' && password !== 'password') {
+  try {
+    const data = await request.validate({
+      schema: loginSchema,
+    })
+
+    if (data.username !== 'username' || data.password !== 'password') {
       throw 'Incorrect username and password'
     }
   } catch (error) {

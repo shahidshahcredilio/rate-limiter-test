@@ -12,5 +12,5 @@
 import { Limiter } from '@adonisjs/limiter/build/services'
 
 export const { httpLimiters } = Limiter.define('global', () => {
-  return Limiter.allowRequests(1).every('10 second').blockFor('5 min')
+  return Limiter.allowRequests(1).every('20 second').blockFor('2 min')
 })
